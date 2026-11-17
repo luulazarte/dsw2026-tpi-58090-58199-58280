@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 import useAuth from '../hook/useAuth';
-import { frontendErrorMessage } from '../helpers/backendError';
 
 function AdminLoginPage() {
   const [errorMessage, setErrorMessage] = useState('');
@@ -12,31 +11,22 @@ function AdminLoginPage() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm({ defaultValues: { username: '', password: '' } });
+  } = useForm({ defaultValues: { email: '', password: '' } });
 
   const navigate = useNavigate();
-  const { singinAdmin } = useAuth();
+  const { signInAdmin } = useAuth();
 
   const onValid = async (formData) => {
-    try {
-      const { error } = await singinAdmin(formData.username, formData.password);
+    setErrorMessage('');
+    const { error } = await signInAdmin(formData.email, formData.password);
 
-      if (error) {
-        setErrorMessage(
-          error.frontendErrorMessage || 'Credenciales administrativas inválidas'
-        );
+    if (error) {
+      setErrorMessage(error);
 
-        return;
-      }
-
-      navigate('/admin/home');
-    } catch (error) {
-      if (error?.response?.data?.code) {
-        setErrorMessage(frontendErrorMessage[error?.response?.data?.code]);
-      } else {
-        setErrorMessage('Error al conectar con el servicio administrativo');
-      }
+      return;
     }
+
+    navigate('/admin/home');
   };
 
   return (
@@ -102,20 +92,24 @@ function AdminLoginPage() {
                 </span>
                 <input
                   type="email"
-                  placeholder="admin@medportal.com"
+                  placeholder="admin@system.com"
                   className={`w-full border rounded-lg pl-10 pr-3.5 py-2.5 text-sm bg-white text-med-text-main placeholder-med-text-muted focus:outline-none focus:ring-2 focus:ring-med-primary-600 focus:border-transparent ${
-                    errors.username
+                    errors.email
                       ? 'border-red-400 bg-red-50/20'
                       : 'border-med-border'
                   }`}
-                  {...register('username', {
+                  {...register('email', {
                     required: 'El correo electrónico es obligatorio',
+                     pattern: {
+                      value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                      message: 'Ingresá un correo electrónico válido',
+                    },
                   })}
                 />
               </div>
-              {errors.username && (
+              {errors.email && (
                 <p className="text-xs text-red-500 font-medium">
-                  {errors.username.message}
+                  {errors.email.message}
                 </p>
               )}
             </div>
@@ -151,6 +145,10 @@ function AdminLoginPage() {
                   }`}
                   {...register('password', {
                     required: 'La contraseña es obligatoria',
+                     minLength: {
+                      value: 8,
+                      message: 'Debe tener al menos 8 caracteres',
+                    },
                   })}
                 />
                 <button
@@ -216,13 +214,6 @@ function AdminLoginPage() {
               <span>Iniciar Sesión</span>
               <span className="text-sm">→</span>
             </button>
-
-            <div className="bg-med-primary-50 border border-med-primary-200/60 rounded-lg p-2.5 text-center text-xs text-med-primary-900">
-              <span className="font-semibold">Credenciales de prueba:</span>
-              <br />
-              Email: <code>admin@medportal.com</code> | Clave:{' '}
-              <code>admin123</code>
-            </div>
 
             {/* Error Message */}
             {errorMessage && (

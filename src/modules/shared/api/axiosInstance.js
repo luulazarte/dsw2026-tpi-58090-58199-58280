@@ -1,16 +1,16 @@
 import axios from 'axios';
+import { clearSession, getSession } from '../helpers/session';
 
 const instance = axios.create({
-  baseURL: import.meta.env.VITE_BACKEND_URL,
-  withCredentials: true,
+  baseURL: '/',
 });
 
 instance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    const session = getSession();
 
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    if (session?.token) {
+      config.headers.Authorization = `Bearer ${session.token}`;
     }
 
     return config;
@@ -23,13 +23,13 @@ instance.interceptors.response.use(
     return config;
   },
   (error) => {
-    if (error.status === 401) {
-      if (window.location.pathname.includes('/admin/')) {
-        localStorage.clear();
-        window.location.href = '/login';
-      } else {
-        localStorage.removeItem('token');
-      }
+    const isLoginRequest = error.config?.url?.includes('/auth/');
+
+    if (error.response?.status === 401 && !isLoginRequest) {
+      const isAdminArea = window.location.pathname.startsWith('/admin');
+
+      clearSession();
+      window.location.href = isAdminArea ? '/admin/login' : '/login';
     }
 
     return Promise.reject(error);
