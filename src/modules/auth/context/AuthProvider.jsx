@@ -1,94 +1,65 @@
 import { createContext, useState } from 'react';
-import { login } from '../services/login';
-import { loginAdmin } from '../services/adminLogin';
-import { loginPatient } from '../services/patientLogin';
+import { loginAdmin, loginPatient } from '../services/authService';
+import { ROLES } from '../constants/roles';
+import {
+  clearSession,
+  getSession,
+  saveSession,
+} from '../../shared/helpers/session';
 
 const AuthContext = createContext();
 
 function AuthProvider({ children }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    const token = localStorage.getItem('token');
+  const [session, setSession] = useState(() => getSession());
+   const startSession = (newSession) => {
+    saveSession(newSession);
+    setSession(newSession);
+  };  
 
-    return Boolean(token);
-  });
-
-  const singout = () => {
-    localStorage.clear();
-    setIsAuthenticated(false);
-  };
-
-  const setAuthSession = (token) => {
-    localStorage.setItem('token', token);
-    setIsAuthenticated(true);
-  };
-
-  const singin = async (username, password) => {
-    const { data, error } = await login(username, password);
+  const signInAdmin = async (email, password) => {
+    const { data, error } = await loginAdmin(email, password);
 
     if (error) {
       return { error };
     }
 
-    setAuthSession(data);
+    if (data.role !== ROLES.ADMIN) {
+      return { error: 'El usuario no tiene permisos de administrador.' };
+    }
+
+    startSession({ token: data.token, role: data.role, email });
 
     return { error: null };
   };
 
-  const singinAdmin = async (username, password) => {
-    if (
-      (username === 'admin' ||
-        username === 'admin@medportal.com' ||
-        username === 'admin@test.com') &&
-      password === 'admin123'
-    ) {
-      setAuthSession('mock-admin-token-12345');
-
-      return { error: null };
-    }
-
-    const { data, error } = await loginAdmin(username, password);
+  const signInPatient = async (email, dni) => {
+    const { data, error } = await loginPatient(email, dni);
 
     if (error) {
       return { error };
     }
 
-    setAuthSession(data);
+    // Guardamos el DNI porque el token no lo trae y los endpoints de
+    // turnos del paciente lo necesitan (GET /api/appointments/patient?dni=)
+    startSession({ token: data.token, role: data.role, email, dni });
 
     return { error: null };
   };
 
-  const singinPatient = async (username, password) => {
-    if (
-      (username === 'paciente' ||
-        username === 'paciente@medportal.com' ||
-        username === 'paciente@test.com') &&
-      password === 'paciente123'
-    ) {
-      setAuthSession('mock-patient-token-67890');
-
-      return { error: null };
-    }
-
-    const { data, error } = await loginPatient(username, password);
-
-    if (error) {
-      return { error };
-    }
-
-    setAuthSession(data);
-
-    return { error: null };
+  const signOut = () => {
+    clearSession();
+    setSession(null);
   };
 
   return (
     <AuthContext.Provider
-      value={{
-        isAuthenticated,
-        singin,
-        singinAdmin,
-        singinPatient,
-        singout,
-        setAuthSession,
+       value={{
+        isAuthenticated: Boolean(session?.token),
+        role: session?.role ?? null,
+        user: session ? { email: session.email, dni: session.dni } : null,
+        signInAdmin,
+        signInPatient,
+        signOut,
       }}
     >
       {children}

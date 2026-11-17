@@ -5,10 +5,10 @@ import useAuth from '../../auth/hook/useAuth';
 function DashboardLayout() {
   const [openMobileMenu, setOpenMobileMenu] = useState(false);
   const navigate = useNavigate();
-  const { singout } = useAuth();
+  const { signOut } = useAuth();
 
   const handleLogout = () => {
-    singout();
+    signOut();
     navigate('/admin/login');
   };
 
