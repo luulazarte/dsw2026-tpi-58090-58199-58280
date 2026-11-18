@@ -15,15 +15,13 @@ const messagesByStatus = {
 };
 
 export const getErrorMessage = (error) => {
-    // Sin respuesta: el backend está apagado o no hay conexión
-    if (!error?.response) {
-        return 'No se pudo conectar con el servidor. Verificá que el backend esté levantado.';
+    const status = error?.response?.status;
+    const data = error?.response?.data;
+    if (!error?.response || (status >= 500 && !data?.errorCode)) {
+        return 'No se pudo conectar con el servidor.';
     }
 
-    const { status, data } = error.response;
-
     if (data?.errorCode === 'VALIDATION_ERROR' && data?.message) {
-        // Los mensajes de validación del backend ya están en español
         return data.message;
     }
 
