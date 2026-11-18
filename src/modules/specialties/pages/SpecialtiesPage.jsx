@@ -7,8 +7,6 @@ function SpecialtiesPage() {
 
   const specialtiesList = [
     {
-      id: 1,
-      name: 'Cardiología',
       description:
         'Estudio y tratamiento de trastornos del corazón y del sistema circulatorio.',
       status: 'Active',
