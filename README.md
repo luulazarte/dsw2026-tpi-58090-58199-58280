@@ -1,24 +1,24 @@
-# Unidad 5
+# Sistema de Turnos Médicos — Frontend
 
-# Configuración
+TPI de Desarrollo de Software 2026 — UTN FRT.
 
-Se agrego un archivo .env.development
-En este archivo tienes una variable de entorno llamada VITE_BACKEND_URL, debes cambiar su valor de acuerdo a la URL de tu backend.
+Aplicación web en React para el Sistema de Turnos Médicos. Se conecta a la API REST del backend (ASP.NET Core) y tiene dos portales: el del **paciente** (reservar y ver sus turnos) y el del **administrador** (gestionar especialidades, médicos, disponibilidad horaria y buscar turnos).
 
-## Pasos de instalación
+## Integrantes
 
-### Ejecutar:
+- Arias Thillois, Nazarena — 58280 - 3K4
+- Lazarte, Luciana — 58199 - 3K4
+- Romero Scro, Martina — 58090 - 3K2
 
-`npm install`
 
-### Ejecutar lint
+## Cómo ejecutarlo
 
-`npm run lint`
+1. Tener el backend corriendo.
+2. Revisar el archivo ".env.development" la variable "VITE_BACKEND_URL" tiene que apuntar a la URL del backend.
+3. Instalar las dependencias (solo la primera vez): "npm install"
+4. Iniciar la aplicación: "npm run dev"
+5. Abrir en el navegador:
+   - Portal del paciente: "http://localhost:5173/login"
+   - Portal del administrador: "http://localhost:5173/admin/login" (admin inicial: admin@system.com / Admin1234)
 
-### Iniciar aplicación
-
-`npm run dev`
-
-### Crear archivos para producción
-
-`npm run build`
+Todos los servicios devuelven `{ data, error }`. Los errores del backend (`{ errorCode, message, details }`) se traducen a mensajes claros en `shared/helpers/getErrorMessage.js` (credenciales incorrectas, turno ya reservado, demasiados intentos, backend apagado, etc.) y se muestran en pantalla. Los formularios validan los datos antes de enviarlos, con las mismas reglas que el backend.
