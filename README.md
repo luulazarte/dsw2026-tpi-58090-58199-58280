@@ -20,5 +20,3 @@ Aplicación web en React para el Sistema de Turnos Médicos. Se conecta a la API
 5. Abrir en el navegador:
    - Portal del paciente: "http://localhost:5173/login"
    - Portal del administrador: "http://localhost:5173/admin/login" (admin inicial: admin@system.com / Admin1234)
-
-Todos los servicios devuelven `{ data, error }`. Los errores del backend (`{ errorCode, message, details }`) se traducen a mensajes claros en `shared/helpers/getErrorMessage.js` (credenciales incorrectas, turno ya reservado, demasiados intentos, backend apagado, etc.) y se muestran en pantalla. Los formularios validan los datos antes de enviarlos, con las mismas reglas que el backend.
