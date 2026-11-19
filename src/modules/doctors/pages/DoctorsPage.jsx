@@ -1,51 +1,84 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Card from '../../shared/components/Card';
 import Button from '../../shared/components/Button';
+import TablePagination from '../../shared/components/TablePagination';
+import { deleteDoctor, getDoctors } from '../services/doctorsService';
+import { useNavigate } from 'react-router-dom';
+
+const PAGE_SIZE = 5;
 
 function DoctorsPage() {
   const [searchTerm, setSearchTerm] = useState('');
 
-  const doctorsList = [
-    {
-      id: 'MED-4920',
-      name: 'Dr. Alejandro Rivera',
-      specialty: 'Cardiología Clínica',
-      status: 'Active',
-      statusType: 'active',
-      avatar: '👨‍⚕️',
-    },
-    {
-      id: 'MED-2104',
-      name: 'Dra. Elena Martínez',
-      specialty: 'Pediatría Avanzada',
-      status: 'On Leave',
-      statusType: 'danger',
-      avatar: '👩‍⚕️',
-    },
-    {
-      id: 'MED-8831',
-      name: 'Dr. Marcos Torres',
-      specialty: 'Neurocirugía',
-      status: 'Active',
-      statusType: 'active',
-      avatar: '👨‍⚕️',
-    },
-    {
-      id: 'MED-1192',
-      name: 'Dra. Lucía Soria',
-      specialty: 'Ginecología',
-      status: 'Active',
-      statusType: 'active',
-      avatar: '👩‍⚕️',
-    },
-  ];
+  const [doctors, setDoctors] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [reloadKey, setReloadKey] = useState(0);
+  const [deleteError, setDeleteError] = useState('');
+  const navigate = useNavigate();
 
-  const filteredDoctors = doctorsList.filter(
-    (doc) =>
-      doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      doc.specialty.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      doc.id.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Pide los médicos al backend cada vez que cambia la página
+  // o lo que se escribió en el buscador
+  useEffect(() => {
+    const name = searchTerm.trim();
+
+    // Igual que en especialidades: "name" entre 3 y 100 caracteres
+    if (name.length > 0 && name.length < 3) {
+      return;
+    }
+
+    const loadDoctors = async () => {
+      setIsLoading(true);
+      setErrorMessage('');
+      const { data, error } = await getDoctors({
+        pageSize: PAGE_SIZE,
+        pageIndex: page,
+        name,
+      });
+
+      if (error) {
+        setErrorMessage(error);
+      } else {
+        setDoctors(data.data);
+        setTotal(data.total);
+      }
+
+      setIsLoading(false);
+    };
+
+    // Esperamos 400 ms desde la última tecla antes de llamar al backend
+    const timer = setTimeout(loadDoctors, 400);
+
+    return () => clearTimeout(timer);
+  }, [page, searchTerm, reloadKey]);
+
+  const handleDelete = async (doc) => {
+    const confirmed = window.confirm(
+      `¿Eliminar al médico "${doc.name}"? Dejará de aparecer en el listado.`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setDeleteError('');
+    const { error } = await deleteDoctor(doc.id);
+
+    if (error) {
+      setDeleteError(error);
+
+      return;
+    }
+
+    // Si borramos el único que quedaba en la página, volvemos a la anterior
+    if (doctors.length === 1 && page > 1) {
+      setPage(page - 1);
+    } else {
+      setReloadKey((key) => key + 1);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -82,7 +115,10 @@ function DoctorsPage() {
               type="text"
               placeholder="Buscar doctor por nombre..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setPage(1);
+              }}
               className="w-full pl-9 pr-3 py-2 text-xs bg-white border border-med-border rounded-lg text-med-text-main placeholder-med-text-muted focus:outline-none focus:ring-1 focus:ring-med-primary-600"
             />
           </div>
@@ -108,7 +144,7 @@ function DoctorsPage() {
           </Button>
 
           <Button
-            onClick={() => alert('Abrir modal de nuevo doctor')}
+            onClick={() => navigate('/admin/doctors/new')}
             className="flex items-center gap-1.5 bg-med-primary-700 hover:bg-med-primary-800 text-white"
           >
             <span>+</span>
@@ -123,6 +159,9 @@ function DoctorsPage() {
           <h2 className="text-base font-bold text-med-primary-900">
             Registros de Doctores
           </h2>
+          {deleteError && (
+            <p className="mt-2 text-xs text-red-600">{deleteError}</p>
+          )}
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
@@ -137,7 +176,40 @@ function DoctorsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-med-border-subtle">
-              {filteredDoctors.map((doc) => (
+              {isLoading && (
+                <tr>
+                  <td
+                    colSpan={4}
+                    className="px-6 py-8 text-center text-med-text-muted"
+                  >
+                    Cargando médicos...
+                  </td>
+                </tr>
+              )}
+
+              {!isLoading && errorMessage && (
+                <tr>
+                  <td
+                    colSpan={4}
+                    className="px-6 py-8 text-center text-red-600"
+                  >
+                    {errorMessage}
+                  </td>
+                </tr>
+              )}
+
+              {!isLoading && !errorMessage && doctors.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={4}
+                    className="px-6 py-8 text-center text-med-text-muted"
+                  >
+                    No hay médicos para mostrar.
+                  </td>
+                </tr>
+              )}
+
+              {doctors.map((doc) => (
                 <tr
                   key={doc.id}
                   className="hover:bg-gray-50/70 transition-colors"
@@ -147,22 +219,16 @@ function DoctorsPage() {
                     <div className="flex items-center gap-3">
                       <div className="relative">
                         <div className="w-10 h-10 rounded-xl bg-med-primary-100 flex items-center justify-center text-xl">
-                          {doc.avatar}
+                          👨‍⚕️
                         </div>
-                        <span
-                          className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${
-                            doc.statusType === 'active'
-                              ? 'bg-emerald-500'
-                              : 'bg-rose-500'
-                          }`}
-                        />
+                        <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white bg-emerald-500" />
                       </div>
                       <div>
                         <p className="font-semibold text-med-primary-900 leading-tight">
                           {doc.name}
                         </p>
                         <p className="text-xs text-med-text-muted mt-0.5">
-                          ID: {doc.id}
+                          Matrícula: {doc.licenseNumber}
                         </p>
                       </div>
                     </div>
@@ -171,23 +237,16 @@ function DoctorsPage() {
                   {/* Especialidad Badge en Píldora */}
                   <td className="px-6 py-4">
                     <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-med-primary-100 text-med-primary-700">
-                      {doc.specialty}
+                      {doc.speciality?.name}
                     </span>
                   </td>
 
                   {/* Estado de Disponibilidad */}
                   <td className="px-6 py-4 text-center">
-                    {doc.statusType === 'active' ? (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-med-active-bg text-med-active-text">
-                        <span className="w-1.5 h-1.5 rounded-full bg-med-active-text" />
-                        Active
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-med-danger-bg text-med-danger-text">
-                        <span className="w-1.5 h-1.5 rounded-full bg-med-danger-text" />
-                        On Leave
-                      </span>
-                    )}
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-med-active-bg text-med-active-text">
+                      <span className="w-1.5 h-1.5 rounded-full bg-med-active-text" />
+                      Activo
+                    </span>
                   </td>
 
                   {/* Botones de Acciones (Ojo, Lápiz, Basurero) */}
@@ -196,7 +255,6 @@ function DoctorsPage() {
                       <button
                         title="Ver detalle"
                         className="p-1.5 rounded-lg hover:bg-med-primary-50 text-med-primary-600 hover:text-med-primary-900 transition"
-                        onClick={() => alert(`Ver detalle de ${doc.name}`)}
                       >
                         <svg
                           className="w-4 h-4"
@@ -222,7 +280,6 @@ function DoctorsPage() {
                       <button
                         title="Editar profesional"
                         className="p-1.5 rounded-lg hover:bg-med-primary-50 text-med-primary-600 hover:text-med-primary-900 transition"
-                        onClick={() => alert(`Editar profesional ${doc.name}`)}
                       >
                         <svg
                           className="w-4 h-4"
@@ -242,9 +299,7 @@ function DoctorsPage() {
                       <button
                         title="Eliminar profesional"
                         className="p-1.5 rounded-lg hover:bg-red-50 text-med-danger-text transition"
-                        onClick={() =>
-                          alert(`Eliminar profesional ${doc.name}`)
-                        }
+                        onClick={() => handleDelete(doc)}
                       >
                         <svg
                           className="w-4 h-4"
@@ -268,18 +323,14 @@ function DoctorsPage() {
           </table>
         </div>
 
-        {/* Paginador normalizado idéntico a Búsqueda y Filtrado de Citas */}
-        <div className="p-4 bg-med-primary-50/50 border-t border-med-border flex items-center justify-between text-xs text-med-text-muted">
-          <span>Mostrando 4 de 124 registros</span>
-          <div className="flex items-center gap-1">
-            <button className="px-2.5 py-1 border border-med-border rounded bg-white text-med-text-sub hover:bg-gray-50">
-              ‹
-            </button>
-            <button className="px-2.5 py-1 border border-med-border rounded bg-white text-med-text-sub hover:bg-gray-50">
-              ›
-            </button>
-          </div>
-        </div>
+        {/* Paginador: usa el total que devuelve el backend */}
+        <TablePagination
+          currentPage={page}
+          totalPages={Math.max(1, Math.ceil(total / PAGE_SIZE))}
+          totalItems={total}
+          pageSize={PAGE_SIZE}
+          onPageChange={setPage}
+        />
       </Card>
     </div>
   );
