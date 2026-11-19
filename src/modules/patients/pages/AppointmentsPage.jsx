@@ -1,25 +1,73 @@
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Card from '../../shared/components/Card';
 import Button from '../../shared/components/Button';
+import useAuth from '../../auth/hook/useAuth';
+import {
+  cancelAppointment,
+  getPatientAppointments,
+} from '../../appointments/services/appointmentsService';
 
+// "2026-11-23T00:00:00" → "lunes, 23 de noviembre"
+const formatDate = (dateText) => {
+  const [year, month, day] = dateText.slice(0, 10).split('-').map(Number);
+
+  return new Date(year, month - 1, day).toLocaleDateString('es-AR', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  });
+};
 function AppointmentsPage() {
-  const sampleAppointments = [
-    {
-      id: 1,
-      doctor: 'Dra. María González',
-      specialty: 'Cardiología',
-      date: '2026-10-28',
-      time: '10:30 hs',
-      status: 'Confirmado',
-    },
-    {
-      id: 2,
-      doctor: 'Dr. Lucas Fernández',
-      specialty: 'Traumatología',
-      date: '2026-11-05',
-      time: '15:00 hs',
-      status: 'Pendiente',
-    },
-  ];
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [appointments, setAppointments] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  // Al abrir la pantalla pedimos los turnos del paciente que inició sesión
+  useEffect(() => {
+    const loadAppointments = async () => {
+      const { data, error } = await getPatientAppointments(user.dni);
+
+      if (error) {
+        setErrorMessage(error);
+      } else {
+        // Ordenados del más próximo al más lejano
+        setAppointments(
+          [...data].sort((a, b) =>
+            `${a.date}${a.startTime}`.localeCompare(`${b.date}${b.startTime}`)
+          )
+        );
+      }
+
+      setIsLoading(false);
+    };
+
+    loadAppointments();
+  }, [user.dni]);
+
+  const handleCancel = async (appt) => {
+    const confirmed = window.confirm(
+      `¿Cancelar el turno con ${appt.doctorName}? El horario quedará libre para otro paciente.`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setErrorMessage('');
+    const { error } = await cancelAppointment(appt.id);
+
+    if (error) {
+      setErrorMessage(error);
+
+      return;
+    }
+
+    // Lo sacamos de la lista (el backend solo devuelve turnos activos)
+    setAppointments(appointments.filter((item) => item.id !== appt.id));
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -32,13 +80,27 @@ function AppointmentsPage() {
             Consulta y gestiona las citas médicas programadas.
           </p>
         </div>
-        <Button onClick={() => alert('Función de nuevo turno próximamente')}>
-          + Solicitar Nuevo Turno
-        </Button>
+        <Button onClick={() => navigate('/')}>+ Solicitar Nuevo Turno</Button>
       </div>
 
+      {errorMessage && (
+        <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-600 text-center">
+          {errorMessage}
+        </div>
+      )}
+
+      {isLoading && (
+        <p className="text-sm text-med-text-muted">Cargando tus turnos...</p>
+      )}
+
+      {!isLoading && !errorMessage && appointments.length === 0 && (
+        <Card className="p-8 text-center">
+          <p className="text-sm text-med-text-sub">No tenés turnos próximos.</p>
+        </Card>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {sampleAppointments.map((appt) => (
+        {appointments.map((appt) => (
           <Card
             key={appt.id}
             className="flex flex-col justify-between gap-4 p-6"
@@ -46,30 +108,25 @@ function AppointmentsPage() {
             <div>
               <div className="flex items-center justify-between mb-3">
                 <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-med-primary-100 text-med-primary-700">
-                  {appt.specialty}
+                  {appt.specialtyName}
                 </span>
-                <span
-                  className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
-                    appt.status === 'Confirmado'
-                      ? 'bg-med-active-bg text-med-active-text'
-                      : 'bg-med-leave-bg text-med-leave-text'
-                  }`}
-                >
+                {/* El backend solo devuelve turnos reservados (BOOKED) */}
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-med-active-bg text-med-active-text">
                   <span className="w-1.5 h-1.5 rounded-full bg-current" />
-                  {appt.status}
+                  Confirmado
                 </span>
               </div>
               <h3 className="text-lg font-bold text-med-primary-900">
-                {appt.doctor}
+                {appt.doctorName}
               </h3>
               <p className="text-sm text-med-text-sub mt-2">
                 Fecha:{' '}
                 <strong className="text-med-text-main font-semibold">
-                  {appt.date}
+                  {formatDate(appt.date)}
                 </strong>{' '}
                 a las{' '}
                 <strong className="text-med-text-main font-semibold">
-                  {appt.time}
+                  {appt.startTime.slice(0, 5)} hs
                 </strong>
               </p>
             </div>
@@ -77,7 +134,7 @@ function AppointmentsPage() {
               <Button
                 variant="outline"
                 className="w-full text-xs"
-                onClick={() => alert(`Cancelando turno ${appt.id}`)}
+                onClick={() => handleCancel(appt)}
               >
                 Cancelar Turno
               </Button>
