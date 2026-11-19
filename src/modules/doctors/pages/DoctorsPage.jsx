@@ -124,7 +124,7 @@ function DoctorsPage() {
           </div>
 
           <Button
-            onClick={() => alert('Abrir modal de disponibilidad horaria')}
+            onClick={() => navigate('/admin/doctors/availability')}
             className="flex items-center gap-2 bg-med-primary-900 hover:bg-med-primary-800 text-white"
           >
             <svg

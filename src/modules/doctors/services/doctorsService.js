@@ -43,3 +43,16 @@ export const deleteDoctor = async (id) => {
         return { error: getErrorMessage(error) };
     }
 };
+
+// GET /api/doctors/{id}/availabilities
+// Respuesta: turnos de 30 min del mes actual
+// [{ id, availabilityRuleId, slotDate, startTime, endTime, status }]
+export const getDoctorAvailabilities = async (doctorId) => {
+    try {
+        const response = await instance.get(`${URL}/${doctorId}/availabilities`);
+
+        return { data: response.data, error: null };
+    } catch (error) {
+        return { data: null, error: getErrorMessage(error) };
+    }
+};
