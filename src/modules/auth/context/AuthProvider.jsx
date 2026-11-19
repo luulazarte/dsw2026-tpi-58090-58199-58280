@@ -11,10 +11,10 @@ const AuthContext = createContext();
 
 function AuthProvider({ children }) {
   const [session, setSession] = useState(() => getSession());
-   const startSession = (newSession) => {
+  const startSession = (newSession) => {
     saveSession(newSession);
     setSession(newSession);
-  };  
+  };
 
   const signInAdmin = async (email, password) => {
     const { data, error } = await loginAdmin(email, password);
@@ -53,7 +53,7 @@ function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider
-       value={{
+      value={{
         isAuthenticated: Boolean(session?.token),
         role: session?.role ?? null,
         user: session ? { email: session.email, dni: session.dni } : null,

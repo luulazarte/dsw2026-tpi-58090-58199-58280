@@ -1,17 +1,17 @@
 const SESSION_KEY = 'session';
 
 export const getSession = () => {
-    try {
-        return JSON.parse(localStorage.getItem(SESSION_KEY));
-    } catch {
-        return null;
-    }
+  try {
+    return JSON.parse(localStorage.getItem(SESSION_KEY));
+  } catch {
+    return null;
+  }
 };
 
 export const saveSession = (session) => {
-    localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  localStorage.setItem(SESSION_KEY, JSON.stringify(session));
 };
 
 export const clearSession = () => {
-    localStorage.removeItem(SESSION_KEY);
+  localStorage.removeItem(SESSION_KEY);
 };

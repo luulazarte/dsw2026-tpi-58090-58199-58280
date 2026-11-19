@@ -5,7 +5,7 @@ import useAuth from '../../auth/hook/useAuth';
 function PatientLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
 
   const handleLogout = () => {
     signOut();
@@ -84,11 +84,23 @@ function PatientLayout() {
 
             {/* Avatar Paciente */}
             <div className="flex items-center gap-2.5 pl-2 sm:border-l sm:border-med-border">
-              <div className="w-8 h-8 rounded-full bg-med-primary-100 text-med-primary-900 font-bold text-xs flex items-center justify-center border border-med-primary-200">
-                JD
+              <div className="w-8 h-8 rounded-full bg-med-primary-100 text-med-primary-900 flex items-center justify-center border border-med-primary-200">
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
+                </svg>
               </div>
               <span className="hidden sm:inline-block text-xs font-semibold text-med-text-main">
-                Johnathan Doe
+                {user?.email}
               </span>
             </div>
 
@@ -154,7 +166,7 @@ function PatientLayout() {
             </NavLink>
             <div className="pt-2 border-t border-med-border-subtle flex items-center justify-between">
               <span className="text-xs font-medium text-med-text-sub">
-                Paciente: Johnathan Doe
+                Paciente: {user?.email}
               </span>
               <button
                 onClick={handleLogout}

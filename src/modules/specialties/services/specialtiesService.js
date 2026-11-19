@@ -5,36 +5,40 @@ const URL = 'api/specialties';
 
 // GET /api/specialties?pageSize=&pageIndex=&name=
 // Respuesta: { pageSize, pageIndex, total, data: [{ id, name, description }] }
-export const getSpecialties = async ({ pageSize = 10, pageIndex = 1, name = '' } = {}) => {
-    try {
-        const response = await instance.get(URL, {
-            params: { pageSize, pageIndex, name: name || undefined },
-        });
+export const getSpecialties = async ({
+  pageSize = 10,
+  pageIndex = 1,
+  name = '',
+} = {}) => {
+  try {
+    const response = await instance.get(URL, {
+      params: { pageSize, pageIndex, name: name || undefined },
+    });
 
-        return { data: response.data, error: null };
-    } catch (error) {
-        return { data: null, error: getErrorMessage(error) };
-    }
+    return { data: response.data, error: null };
+  } catch (error) {
+    return { data: null, error: getErrorMessage(error) };
+  }
 };
 
 // POST /api/specialties  body: { name, description }
 export const createSpecialty = async (specialty) => {
-    try {
-        const response = await instance.post(URL, specialty);
+  try {
+    const response = await instance.post(URL, specialty);
 
-        return { data: response.data, error: null };
-    } catch (error) {
-        return { data: null, error: getErrorMessage(error) };
-    }
+    return { data: response.data, error: null };
+  } catch (error) {
+    return { data: null, error: getErrorMessage(error) };
+  }
 };
 
 // DELETE /api/specialties/{id}  → "ok" (eliminación lógica en el backend)
 export const deleteSpecialty = async (id) => {
-    try {
-        await instance.delete(`${URL}/${id}`);
+  try {
+    await instance.delete(`${URL}/${id}`);
 
-        return { error: null };
-    } catch (error) {
-        return { error: getErrorMessage(error) };
-    }
+    return { error: null };
+  } catch (error) {
+    return { error: getErrorMessage(error) };
+  }
 };

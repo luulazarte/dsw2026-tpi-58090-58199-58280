@@ -10,21 +10,21 @@ const URL = 'api/availabilities';
 // cargada este mes, el backend responde 409 (Conflict): en ese caso la
 // sobrescribimos con PUT, que recibe el mismo body.
 export const saveAvailability = async (availability) => {
-    try {
-        const response = await instance.post(URL, availability);
+  try {
+    const response = await instance.post(URL, availability);
 
-        return { data: response.data, error: null };
-    } catch (error) {
-        if (error.response?.status !== 409) {
-            return { data: null, error: getErrorMessage(error) };
-        }
+    return { data: response.data, error: null };
+  } catch (error) {
+    if (error.response?.status !== 409) {
+      return { data: null, error: getErrorMessage(error) };
     }
+  }
 
-    try {
-        const response = await instance.put(URL, availability);
+  try {
+    const response = await instance.put(URL, availability);
 
-        return { data: response.data, error: null };
-    } catch (error) {
-        return { data: null, error: getErrorMessage(error) };
-    }
+    return { data: response.data, error: null };
+  } catch (error) {
+    return { data: null, error: getErrorMessage(error) };
+  }
 };

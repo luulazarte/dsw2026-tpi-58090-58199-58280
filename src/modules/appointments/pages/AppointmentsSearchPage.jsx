@@ -143,9 +143,9 @@ function AppointmentsSearchPage() {
   const activeChips = [
     appliedFilters.dni && `DNI: ${appliedFilters.dni}`,
     appliedFilters.specialtyId &&
-    `Especialidad: ${specialties.find((s) => s.id === appliedFilters.specialtyId)?.name ?? ''}`,
+      `Especialidad: ${specialties.find((s) => s.id === appliedFilters.specialtyId)?.name ?? ''}`,
     appliedFilters.doctorId &&
-    `Doctor: ${doctors.find((d) => d.id === appliedFilters.doctorId)?.name ?? ''}`,
+      `Doctor: ${doctors.find((d) => d.id === appliedFilters.doctorId)?.name ?? ''}`,
     appliedFilters.date && `Fecha: ${formatDate(appliedFilters.date)}`,
   ].filter(Boolean);
 

@@ -15,7 +15,7 @@ function PatientLoginPage() {
   const navigate = useNavigate();
   const { signInPatient } = useAuth();
 
- const onValid = async (formData) => {
+  const onValid = async (formData) => {
     setErrorMessage('');
     const { error } = await signInPatient(formData.email, formData.dni);
 
@@ -95,7 +95,7 @@ function PatientLoginPage() {
                 }`}
                 {...register('email', {
                   required: 'El correo electrónico es obligatorio',
-                   pattern: {
+                  pattern: {
                     value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
                     message: 'Ingresá un correo electrónico válido',
                   },
@@ -109,7 +109,7 @@ function PatientLoginPage() {
             )}
           </div>
 
-                   {/* DNI */}
+          {/* DNI */}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-semibold text-med-text-main">
               DNI
