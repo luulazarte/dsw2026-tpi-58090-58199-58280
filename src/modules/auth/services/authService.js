@@ -1,7 +1,7 @@
 import { instance } from '../../shared/api/axiosInstance';
 import { getErrorMessage } from '../../shared/helpers/getErrorMessage';
 
-// POST /api/auth/admin/login → { token, role }
+
 export const loginAdmin = async (email, password) => {
     try {
         const response = await instance.post('api/auth/admin/login', {
@@ -15,8 +15,7 @@ export const loginAdmin = async (email, password) => {
     }
 };
 
-// POST /api/auth/patient/login → { token, role }
-// Si el paciente no existe, el backend lo registra automáticamente (RN06)
+
 export const loginPatient = async (email, dni) => {
     try {
         const response = await instance.post('api/auth/patient/login', {

@@ -1,103 +1,85 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Card from '../../shared/components/Card';
 import Button from '../../shared/components/Button';
+import { deleteSpecialty, getSpecialties } from '../services/specialtiesService';
+import TablePagination from '../../shared/components/TablePagination';
+import { useNavigate } from 'react-router-dom';
+
+const PAGE_SIZE = 5;
 
 function SpecialtiesPage() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [specialties, setSpecialties] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [reloadKey, setReloadKey] = useState(0);
+  const [deleteError, setDeleteError] = useState('');
+  const navigate = useNavigate();
 
-  const specialtiesList = [
-    {
-      description:
-        'Estudio y tratamiento de trastornos del corazón y del sistema circulatorio.',
-      status: 'Active',
-      icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="1.75"
-            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-          />
-        </svg>
-      ),
-    },
-    {
-      id: 2,
-      name: 'Neurología',
-      description:
-        'Diagnóstico y tratamiento de todas las categorías de afecciones cerebrales.',
-      status: 'Active',
-      icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="1.75"
-            d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-          />
-        </svg>
-      ),
-    },
-    {
-      id: 3,
-      name: 'Dermatología',
-      description:
-        'Atención integral de enfermedades de la piel, uñas y cabello.',
-      status: 'Inactive',
-      icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="1.75"
-            d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"
-          />
-        </svg>
-      ),
-    },
-    {
-      id: 4,
-      name: 'Pediatría',
-      description: 'Cuidado médico de lactantes, niños y adolescentes.',
-      status: 'Active',
-      icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="1.75"
-            d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-      ),
-    },
-  ];
 
-  const filteredSpecialties = specialtiesList.filter(
-    (item) =>
-      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Pide las especialidades al backend cada vez que cambia la página
+  // o lo que se escribió en el buscador
+  useEffect(() => {
+    const name = searchTerm.trim();
+
+    // El enunciado pide que "name" tenga entre 3 y 100 caracteres:
+    // con 1 o 2 letras todavía no buscamos
+    if (name.length > 0 && name.length < 3) {
+      return;
+    }
+
+    const loadSpecialties = async () => {
+      setIsLoading(true);
+      setErrorMessage('');
+      const { data, error } = await getSpecialties({
+        pageSize: PAGE_SIZE,
+        pageIndex: page,
+        name,
+      });
+
+      if (error) {
+        setErrorMessage(error);
+      } else {
+        setSpecialties(data.data);
+        setTotal(data.total);
+      }
+
+      setIsLoading(false);
+    };
+
+    // Esperamos 400 ms desde la última tecla antes de llamar al backend
+    const timer = setTimeout(loadSpecialties, 400);
+
+    return () => clearTimeout(timer);
+  }, [page, searchTerm, reloadKey]);
+
+  const handleDelete = async (spec) => {
+    const confirmed = window.confirm(
+      `¿Eliminar la especialidad "${spec.name}"?`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setDeleteError('');
+    const { error } = await deleteSpecialty(spec.id);
+
+    if (error) {
+      setDeleteError(error);
+
+      return;
+    }
+
+    // Si borramos la única que quedaba en la página, volvemos a la anterior
+    if (specialties.length === 1 && page > 1) {
+      setPage(page - 1);
+    } else {
+      setReloadKey((key) => key + 1);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -135,14 +117,17 @@ function SpecialtiesPage() {
               type="text"
               placeholder="Buscar especialidad..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setPage(1);
+              }}
               className="w-full pl-9 pr-3 py-2 text-xs bg-white border border-med-border rounded-lg text-med-text-main placeholder-med-text-muted focus:outline-none focus:ring-1 focus:ring-med-primary-600"
             />
           </div>
 
           {/* Botón Nueva Especialidad */}
           <Button
-            onClick={() => alert('Abrir modal para crear nueva especialidad')}
+            onClick={() => navigate('/admin/specialties/new')}
             className="flex items-center gap-1.5 bg-med-primary-900 hover:bg-med-primary-800 text-white font-medium"
           >
             <span>+</span>
@@ -157,6 +142,9 @@ function SpecialtiesPage() {
           <h2 className="text-base font-bold text-med-primary-900">
             Registros de Especialidades
           </h2>
+          {deleteError && (
+            <p className="mt-2 text-xs text-red-600">{deleteError}</p>
+          )}
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
@@ -169,7 +157,36 @@ function SpecialtiesPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-med-border-subtle">
-              {filteredSpecialties.map((spec) => (
+              {isLoading && (
+                <tr>
+                  <td
+                    colSpan={4}
+                    className="px-6 py-8 text-center text-med-text-muted"
+                  >
+                    Cargando especialidades...
+                  </td>
+                </tr>
+              )}
+
+              {!isLoading && errorMessage && (
+                <tr>
+                  <td colSpan={4} className="px-6 py-8 text-center text-red-600">
+                    {errorMessage}
+                  </td>
+                </tr>
+              )}
+
+              {!isLoading && !errorMessage && specialties.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={4}
+                    className="px-6 py-8 text-center text-med-text-muted"
+                  >
+                    No hay especialidades para mostrar.
+                  </td>
+                </tr>
+              )}
+              {specialties.map((spec) => (
                 <tr
                   key={spec.id}
                   className="hover:bg-gray-50/70 transition-colors"
@@ -178,7 +195,19 @@ function SpecialtiesPage() {
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-med-primary-100 text-med-primary-700 flex items-center justify-center shrink-0">
-                        {spec.icon}
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="1.75"
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+                          />
+                        </svg>
                       </div>
                       <span className="font-semibold text-med-primary-900">
                         {spec.name}
@@ -193,26 +222,18 @@ function SpecialtiesPage() {
 
                   {/* Estado (Active / Inactive) */}
                   <td className="px-6 py-4 text-center">
-                    {spec.status === 'Active' ? (
-                      <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-med-active-bg text-med-active-text">
-                        Active
-                      </span>
-                    ) : (
-                      <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-500">
-                        Inactive
-                      </span>
-                    )}
+                    <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-med-active-bg text-med-active-text">
+                      Activa
+                    </span>
                   </td>
 
                   {/* Acciones: Editar y Eliminar */}
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2 text-med-text-muted">
                       <button
+                        type="button"
                         title="Editar especialidad"
                         className="p-1.5 rounded-lg hover:bg-med-primary-50 text-med-text-muted hover:text-med-primary-900 transition"
-                        onClick={() =>
-                          alert(`Editar especialidad ${spec.name}`)
-                        }
                       >
                         <svg
                           className="w-4 h-4"
@@ -228,13 +249,10 @@ function SpecialtiesPage() {
                           />
                         </svg>
                       </button>
-
                       <button
                         title="Eliminar especialidad"
                         className="p-1.5 rounded-lg hover:bg-red-50 text-med-text-muted hover:text-med-danger-text transition"
-                        onClick={() =>
-                          alert(`Eliminar especialidad ${spec.name}`)
-                        }
+                        onClick={() => handleDelete(spec)}
                       >
                         <svg
                           className="w-4 h-4"
@@ -258,18 +276,14 @@ function SpecialtiesPage() {
           </table>
         </div>
 
-        {/* Paginador normalizado idéntico a Búsqueda y Filtrado de Citas */}
-        <div className="p-4 bg-med-primary-50/50 border-t border-med-border flex items-center justify-between text-xs text-med-text-muted">
-          <span>Mostrando 4 de 32 registros</span>
-          <div className="flex items-center gap-1">
-            <button className="px-2.5 py-1 border border-med-border rounded bg-white text-med-text-sub hover:bg-gray-50">
-              ‹
-            </button>
-            <button className="px-2.5 py-1 border border-med-border rounded bg-white text-med-text-sub hover:bg-gray-50">
-              ›
-            </button>
-          </div>
-        </div>
+        {/* Paginador: usa el total que devuelve el backend */}
+        <TablePagination
+          currentPage={page}
+          totalPages={Math.max(1, Math.ceil(total / PAGE_SIZE))}
+          totalItems={total}
+          pageSize={PAGE_SIZE}
+          onPageChange={setPage}
+        />
       </Card>
     </div>
   );
