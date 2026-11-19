@@ -40,3 +40,35 @@ export const cancelAppointment = async (id) => {
         return { error: getErrorMessage(error) };
     }
 };
+
+// GET /api/appointments/search?specialtyId=&doctorId=&dni=&date=&pageSize=&pageIndex=
+// Respuesta: { pageSize, pageIndex, total, data: [{ appointmentsId,
+//   appointmentsStatus, patient: { dni, fullName },
+//   doctor: { doctorId, name, specialty: { specialtyId, name } },
+//   date, startTime }] }
+export const searchAppointments = async ({
+    specialtyId,
+    doctorId,
+    dni,
+    date,
+    pageSize = 10,
+    pageIndex = 1,
+}) => {
+    try {
+        const response = await instance.get(`${URL}/search`, {
+            // Los filtros vacíos no se mandan (undefined)
+            params: {
+                specialtyId: specialtyId || undefined,
+                doctorId: doctorId || undefined,
+                dni: dni || undefined,
+                date: date || undefined,
+                pageSize,
+                pageIndex,
+            },
+        });
+
+        return { data: response.data, error: null };
+    } catch (error) {
+        return { data: null, error: getErrorMessage(error) };
+    }
+};
