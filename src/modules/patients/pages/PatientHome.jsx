@@ -223,10 +223,11 @@ function PatientHome() {
         key={slot.id}
         type="button"
         onClick={() => setSelectedSlot(slot)}
-        className={`py-2 px-3 text-xs font-semibold rounded-lg border transition-all text-center ${extraClass} ${isSelected
+        className={`py-2 px-3 text-xs font-semibold rounded-lg border transition-all text-center ${extraClass} ${
+          isSelected
             ? 'bg-emerald-400 text-white border-emerald-400 shadow-sm'
             : 'bg-white border-med-border text-med-primary-900 hover:border-med-primary-600 hover:bg-med-primary-50/50'
-          }`}
+        }`}
       >
         {formatTime(slot.startTime)}
       </button>
@@ -451,10 +452,11 @@ function PatientHome() {
                     key={toDateKey(day)}
                     type="button"
                     onClick={() => setMobileDayIndex(index)}
-                    className={`flex-1 min-w-[56px] py-2.5 px-2 rounded-xl text-center border transition-all ${isActive
+                    className={`flex-1 min-w-[56px] py-2.5 px-2 rounded-xl text-center border transition-all ${
+                      isActive
                         ? 'bg-med-primary-900 text-white border-med-primary-900 shadow-sm'
                         : 'bg-white border-med-border text-med-text-main hover:bg-gray-50'
-                      }`}
+                    }`}
                   >
                     <span className="block text-[10px] font-bold uppercase">
                       {DAY_NAMES[day.getDay()]}

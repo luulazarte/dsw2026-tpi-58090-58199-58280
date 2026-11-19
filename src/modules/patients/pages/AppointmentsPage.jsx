@@ -18,6 +18,7 @@ const formatDate = (dateText) => {
     month: 'long',
   });
 };
+
 function AppointmentsPage() {
   const navigate = useNavigate();
   const { user } = useAuth();

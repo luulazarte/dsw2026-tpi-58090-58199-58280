@@ -5,7 +5,7 @@ import useAuth from '../../auth/hook/useAuth';
 function DashboardLayout() {
   const [openMobileMenu, setOpenMobileMenu] = useState(false);
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
 
   const handleLogout = () => {
     signOut();
@@ -99,13 +99,12 @@ function DashboardLayout() {
 
   return (
     <div className="min-h-screen bg-med-bg flex">
-
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-med-border flex flex-col justify-between transition-transform duration-200 sm:translate-x-0 ${openMobileMenu ? 'translate-x-0' : '-translate-x-full'
-          }`}
+        className={`fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-med-border flex flex-col justify-between transition-transform duration-200 sm:translate-x-0 ${
+          openMobileMenu ? 'translate-x-0' : '-translate-x-full'
+        }`}
       >
         <div>
-
           <div className="p-6 border-b border-med-border-subtle">
             <h2 className="text-base font-bold text-med-primary-900 leading-tight">
               Admin Portal
@@ -115,7 +114,6 @@ function DashboardLayout() {
             </span>
           </div>
 
-
           <nav className="p-3 space-y-1">
             {navItems.map((item) => (
               <NavLink
@@ -123,9 +121,10 @@ function DashboardLayout() {
                 to={item.to}
                 onClick={() => setOpenMobileMenu(false)}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 px-3.5 py-3 rounded-lg text-sm font-medium transition ${isActive
-                    ? 'bg-med-primary-50 text-med-primary-900 border-r-4 border-med-primary-900'
-                    : 'text-med-text-sub hover:bg-gray-50 hover:text-med-primary-900'
+                  `flex items-center gap-3 px-3.5 py-3 rounded-lg text-sm font-medium transition ${
+                    isActive
+                      ? 'bg-med-primary-50 text-med-primary-900 border-r-4 border-med-primary-900'
+                      : 'text-med-text-sub hover:bg-gray-50 hover:text-med-primary-900'
                   }`
                 }
               >
@@ -135,7 +134,6 @@ function DashboardLayout() {
             ))}
           </nav>
         </div>
-
 
         <div className="p-4 border-t border-med-border-subtle space-y-3">
           <button
@@ -158,23 +156,33 @@ function DashboardLayout() {
             <span>Cerrar Sesión</span>
           </button>
 
-
           <div className="pt-3 border-t border-med-border flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-med-primary-100 text-med-primary-900 flex items-center justify-center font-bold text-xs">
-              AD
+            <div className="w-9 h-9 rounded-full bg-med-primary-100 text-med-primary-900 flex items-center justify-center shrink-0">
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                />
+              </svg>
             </div>
             <div className="overflow-hidden">
               <p className="text-xs font-semibold text-med-text-main truncate">
-                Admin User
+                {user?.email}
               </p>
               <p className="text-[11px] text-med-text-muted truncate">
-                Super Administrator
+                Administrador
               </p>
             </div>
           </div>
         </div>
       </aside>
-
 
       {openMobileMenu && (
         <div
@@ -183,9 +191,7 @@ function DashboardLayout() {
         />
       )}
 
-
       <div className="flex-1 flex flex-col min-w-0 sm:pl-64">
-
         <header className="sm:hidden bg-white border-b border-med-border px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-med-primary-900 text-white flex items-center justify-center font-bold text-xs">
@@ -214,7 +220,6 @@ function DashboardLayout() {
             </svg>
           </button>
         </header>
-
 
         <main className="flex-1 p-4 sm:p-8 max-w-7xl w-full mx-auto">
           <Outlet />

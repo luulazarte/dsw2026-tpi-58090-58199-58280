@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import Card from '../../shared/components/Card';
 import Button from '../../shared/components/Button';
-import { deleteSpecialty, getSpecialties } from '../services/specialtiesService';
+import {
+  deleteSpecialty,
+  getSpecialties,
+} from '../services/specialtiesService';
 import TablePagination from '../../shared/components/TablePagination';
 import { useNavigate } from 'react-router-dom';
 
@@ -17,7 +20,6 @@ function SpecialtiesPage() {
   const [reloadKey, setReloadKey] = useState(0);
   const [deleteError, setDeleteError] = useState('');
   const navigate = useNavigate();
-
 
   // Pide las especialidades al backend cada vez que cambia la página
   // o lo que se escribió en el buscador
@@ -170,7 +172,10 @@ function SpecialtiesPage() {
 
               {!isLoading && errorMessage && (
                 <tr>
-                  <td colSpan={4} className="px-6 py-8 text-center text-red-600">
+                  <td
+                    colSpan={4}
+                    className="px-6 py-8 text-center text-red-600"
+                  >
                     {errorMessage}
                   </td>
                 </tr>
