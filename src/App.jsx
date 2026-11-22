@@ -9,9 +9,9 @@ import { ROLES } from './modules/auth/constants/roles';
 
 // Auth Module
 import AdminLoginPage from './modules/auth/pages/AdminLoginPage';
+import PatientLoginPage from './modules/auth/pages/PatientLoginPage';
 
 // Patients Module
-import PatientLoginPage from './modules/patients/pages/PatientLoginPage';
 import PatientLayout from './modules/patients/components/PatientLayout';
 import PatientHome from './modules/patients/pages/PatientHome';
 import AppointmentsPage from './modules/patients/pages/AppointmentsPage';
@@ -43,7 +43,7 @@ const routes = [
   {
     path: '/',
     element: (
-      <ProtectedRoute role={ROLES.PATIENT} redirectTo="/login">
+      <ProtectedRoute allowedRoles={[ROLES.PATIENT]} redirectTo="/login">
         <PatientLayout />
       </ProtectedRoute>
     ),
@@ -63,7 +63,7 @@ const routes = [
   {
     path: '/admin',
     element: (
-      <ProtectedRoute role={ROLES.ADMIN} redirectTo="/admin/login">
+      <ProtectedRoute allowedRoles={[ROLES.ADMIN]} redirectTo="/admin/login">
         <DashboardLayout />
       </ProtectedRoute>
     ),
@@ -78,10 +78,6 @@ const routes = [
       },
       {
         path: 'patients',
-        element: <AppointmentsSearchPage />,
-      },
-      {
-        path: 'patient-search',
         element: <AppointmentsSearchPage />,
       },
       {

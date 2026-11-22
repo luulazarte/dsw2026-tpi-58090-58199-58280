@@ -1,11 +1,11 @@
 function TablePagination({
   currentPage = 1,
-  totalPages = 1,
   totalItems = 0,
   pageSize = 10,
   onPageChange,
 }) {
   const from = totalItems === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
   const to = Math.min(currentPage * pageSize, totalItems);
 
   return (
