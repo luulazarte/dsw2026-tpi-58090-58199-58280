@@ -39,8 +39,6 @@ function AuthProvider({ children }) {
       return { error };
     }
 
-    // Guardamos el DNI porque el token no lo trae y los endpoints de
-    // turnos del paciente lo necesitan (GET /api/appointments/patient?dni=)
     startSession({ token: data.token, role: data.role, email, dni });
 
     return { error: null };
@@ -57,6 +55,7 @@ function AuthProvider({ children }) {
         isAuthenticated: Boolean(session?.token),
         role: session?.role ?? null,
         user: session ? { email: session.email, dni: session.dni } : null,
+        hasRole: (roles) => roles.includes(session?.role),
         signInAdmin,
         signInPatient,
         signOut,

@@ -1,11 +1,20 @@
 import { Navigate } from 'react-router-dom';
 import useAuth from '../hook/useAuth';
+import { ROLE_HOME } from '../constants/roles';
 
-function ProtectedRoute({ children, role, redirectTo = '/login' }) {
-  const auth = useAuth();
+function ProtectedRoute({
+  children,
+  allowedRoles = [],
+  redirectTo = '/login',
+}) {
+  const { isAuthenticated, hasRole, role } = useAuth();
 
-  if (!auth.isAuthenticated || (role && auth.role !== role)) {
+  if (!isAuthenticated) {
     return <Navigate to={redirectTo} replace />;
+  }
+
+  if (allowedRoles.length > 0 && !hasRole(allowedRoles)) {
+    return <Navigate to={ROLE_HOME[role] ?? redirectTo} replace />;
   }
 
   return children;

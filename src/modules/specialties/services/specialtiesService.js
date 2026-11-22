@@ -3,8 +3,6 @@ import { getErrorMessage } from '../../shared/helpers/getErrorMessage';
 
 const URL = 'api/specialties';
 
-// GET /api/specialties?pageSize=&pageIndex=&name=
-// Respuesta: { pageSize, pageIndex, total, data: [{ id, name, description }] }
 export const getSpecialties = async ({
   pageSize = 10,
   pageIndex = 1,
@@ -21,7 +19,6 @@ export const getSpecialties = async ({
   }
 };
 
-// POST /api/specialties  body: { name, description }
 export const createSpecialty = async (specialty) => {
   try {
     const response = await instance.post(URL, specialty);
@@ -32,7 +29,6 @@ export const createSpecialty = async (specialty) => {
   }
 };
 
-// DELETE /api/specialties/{id}  → "ok" (eliminación lógica en el backend)
 export const deleteSpecialty = async (id) => {
   try {
     await instance.delete(`${URL}/${id}`);

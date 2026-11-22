@@ -3,9 +3,6 @@ import { getErrorMessage } from '../../shared/helpers/getErrorMessage';
 
 const URL = 'api/doctors';
 
-// GET /api/doctors?pageSize=&pageIndex=&name=
-// Respuesta: { pageSize, pageIndex, total,
-//   data: [{ id, name, licenseNumber, speciality: { specialityId, name } }] }
 export const getDoctors = async ({
   pageSize = 10,
   pageIndex = 1,
@@ -22,7 +19,6 @@ export const getDoctors = async ({
   }
 };
 
-// POST /api/doctors  body: { name, licenseNumber, specialityId }
 export const createDoctor = async (doctor) => {
   try {
     const response = await instance.post(URL, doctor);
@@ -33,7 +29,6 @@ export const createDoctor = async (doctor) => {
   }
 };
 
-// DELETE /api/doctors/{id}  → "ok" (eliminación lógica en el backend)
 export const deleteDoctor = async (id) => {
   try {
     await instance.delete(`${URL}/${id}`);
@@ -44,9 +39,6 @@ export const deleteDoctor = async (id) => {
   }
 };
 
-// GET /api/doctors/{id}/availabilities
-// Respuesta: turnos de 30 min del mes actual
-// [{ id, availabilityRuleId, slotDate, startTime, endTime, status }]
 export const getDoctorAvailabilities = async (doctorId) => {
   try {
     const response = await instance.get(`${URL}/${doctorId}/availabilities`);
