@@ -1,40 +1,23 @@
-import { useState } from 'react';
 import usePaginatedSearch from '../../shared/hooks/usePaginatedSearch';
+import useDeleteConfirmation from '../../shared/hooks/useDeleteConfirmation';
 import {
-  deleteSpecialty,
-  getSpecialties,
+    deleteSpecialty,
+    getSpecialties,
 } from '../services/specialtiesService';
 
 export default function useSpecialtiesList({ pageSize }) {
-  const list = usePaginatedSearch({ fetchPage: getSpecialties, pageSize });
-  const [specialtyToDelete, setSpecialtyToDelete] = useState(null);
-  const [deleteError, setDeleteError] = useState('');
+    const list = usePaginatedSearch({ fetchPage: getSpecialties, pageSize });
+    const deletion = useDeleteConfirmation({
+        deleteItem: deleteSpecialty,
+        onDeleted: list.refreshAfterDelete,
+    });
 
-  const askDelete = (specialty) => setSpecialtyToDelete(specialty);
-
-  const cancelDelete = () => setSpecialtyToDelete(null);
-
-  const confirmDelete = async () => {
-    setDeleteError('');
-    const { error } = await deleteSpecialty(specialtyToDelete.id);
-
-    setSpecialtyToDelete(null);
-
-    if (error) {
-      setDeleteError(error);
-
-      return;
-    }
-
-    list.refreshAfterDelete();
-  };
-
-  return {
-    ...list,
-    specialtyToDelete,
-    deleteError,
-    askDelete,
-    cancelDelete,
-    confirmDelete,
-  };
+    return {
+        ...list,
+        specialtyToDelete: deletion.itemToDelete,
+        deleteError: deletion.deleteError,
+        askDelete: deletion.askDelete,
+        cancelDelete: deletion.cancelDelete,
+        confirmDelete: deletion.confirmDelete,
+    };
 }
